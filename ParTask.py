@@ -24,7 +24,7 @@ class Task:
             print("Erreur: Création d'une tâche sans nom!!!")
             exit()
         if not(hasattr(self.run,'__call__')):
-            print("Une tâche doit posseder une fonction à effectuer")
+            print("Une tâche doit posseder une fonction à effectuer!!!")
             Erreur = True
         if self.reads == [] and self.writes == []:
             print("Une tache ne peut pas avoir son domaine de lecture ET d'écriture vide !!!")
@@ -63,8 +63,9 @@ class TaskSystem:
         for i in range(len(self.taskList)):
             for j in range(i+1,len(self.taskList)):
                 if self.taskList[i].name == self.taskList[j].name:
-                    print(("Erreur le nom de tâche {} apparait deux fois dans le systeme de tâche").format(self.taskList[i].name))
+                    print(("Erreur le nom de tâche {} apparait deux fois dans le systeme de tâche!!!").format(self.taskList[i].name))
                     Erreur = True
+                    break
                     
         if Erreur:
             exit()

@@ -10,11 +10,11 @@ class Task:
     writes = list()
     run = None
 
-    def __init__(self, n = "", f = None, r = [], w = []):
-        self.name=n
-        self.reads=r
-        self.writes=w
-        self.run=f
+    def __init__(self, name = "", read = [], write = [], fonction = None):
+        self.name=name
+        self.reads=read
+        self.writes=write
+        self.run=fonction
         self.verifError()
 
     def verifError(self):
@@ -23,7 +23,7 @@ class Task:
         if self.name == "":
             print("Erreur: Création d'une tâche sans nom!!!")
             exit()
-        if self.run == None:
+        if not(hasattr(self.run,'__call__')):
             print("Une tâche doit posseder une fonction à effectuer")
             Erreur = True
         if self.reads == [] and self.writes == []:
@@ -31,7 +31,7 @@ class Task:
             Erreur = True
         
         if(Erreur):
-            print(("Erreur sur la tache {}").format(self.name))
+            print(("Erreur sur la tache {}").format(self))
             exit()
 
     def __repr__(self):

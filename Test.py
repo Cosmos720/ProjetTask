@@ -27,19 +27,19 @@ def runT5():
     global X, Y, W
     W = X + Y
 
-t0 = Task("T0", runT0, ["X"], ["X"])
+t0 = Task("T0", ["X"], ["X"], runT0)
 
-t1 = Task("T1", runT1, w=["X"])
+t1 = Task("T1", write=["X"], fonction=runT1)
 
-t2 = Task("T2", runT2, w=["Y"])
+t2 = Task("T2", write=["Y"], fonction=runT2)
 
-t3 = Task("T3", runT3, ["Y"], ["Y"])
+t3 = Task("T3", ["Y"], ["Y"], runT3)
 
-t4 = Task("T4", runT4, ["X"], ["X"])
+t4 = Task("T4", ["X"], ["X"], runT4)
 
-tSomme = Task("somme", runTsomme, ["X", "Y"], ["Z"])
+tSomme = Task("somme", ["X", "Y"], ["Z"], runTsomme)
 
-t5 = Task("T5", runT5, ["X", "Y"], ["W"])
+t5 = Task("T5", ["X", "Y"], ["W"], runT5)
 
 s1 = TaskSystem([t1, t2, t3, t4, tSomme, t5])
 

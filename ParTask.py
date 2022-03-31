@@ -1,47 +1,84 @@
-from ast import Global
-from concurrent.futures import thread
-from threading import Thread, Semaphore
-import pygraphviz as pg
+from threading import Thread
+import pygraphviz as pgv
 
 
 
 class Task:
-    name = ""
-    reads = []
-    writes = []
+    """Crée une tâche à utiliser dans un système de tâche"""
+    name = str()
+    reads = list()
+    writes = list()
     run = None
 
-    def __init__(self, n, f, r = [], w = []):
+    def __init__(self, n = "", f = None, r = [], w = []):
         self.name=n
         self.reads=r
         self.writes=w
         self.run=f
+        self.verifError()
+
+    def verifError(self):
+        """Vérifie les erreurs de création d'une tâche"""
+        Erreur = False
+        if self.name == "":
+            print("Erreur: Création d'une tâche sans nom!!!")
+            exit()
+        if self.run == None:
+            print("Une tâche doit posseder une fonction à effectuer")
+            Erreur = True
+        if self.reads == [] and self.writes == []:
+            print("Une tache ne peut pas avoir son domaine de lecture ET d'écriture vide !!!")
+            Erreur = True
+        
+        if(Erreur):
+            print(("Erreur sur la tache {}").format(self.name))
+            exit()
 
     def __repr__(self):
         return self.name
 
 class TaskSystem:
-    taskList = []
-    ordre = {}
-    dependance = {}
-    effectuer = []
-    sem = Semaphore(0)
-    threads = []
+    """Crée un systeme de tâche de parallelisme maximale"""
+    taskList = list()
+    ordre = dict()
+    dependance = dict()
+    effectuer = list()
+    threads = list()
 
-    def __init__(self, taskList):
+    def __init__(self, taskList = []):
+        """Ecrire la liste des tâche dans l'ordre d'execution voulu"""
         self.taskList = taskList
+        self.verrifError()
         self.ordre = {task:[] for task in self.taskList}
         self.calcDico()
         self.calcDepedencies()
-        self.sem = Semaphore(len(self.taskList))
+        self.dessin()
+
+    def verrifError(self):
+        """Vérifie les erreurs de création d'un systeme de tâche"""
+        Erreur = False
+        if self.taskList == []:
+            print("Erreur le systeme de tâche ne possede aucune tâche à effectuer!!!")
+            Erreur = True
+        for i in range(len(self.taskList)):
+            for j in range(i+1,len(self.taskList)):
+                if self.taskList[i].name == self.taskList[j].name:
+                    print(("Erreur le nom de tâche {} apparait deux fois dans le systeme de tâche").format(self.taskList[i].name))
+                    Erreur = True
+                    
+        if Erreur:
+            exit()
+
 
     def calcDico(self):
+        """Crée le dictionnaire des dépendances pour un systeme de tâche en ligne"""
         for task in range(len(self.taskList)):
             for dep in range(task,-1,-1):
                 self.ordre[self.taskList[task]] += [self.taskList[dep]]
 
 
     def calcDepedencies(self):
+        """Calcul de la minimisation maximale du systeme de tâche"""
         for t1 in self.taskList:
             dep=[]
             for t2 in self.ordre[t1]:
@@ -61,8 +98,9 @@ class TaskSystem:
 
 
 
-    def test(self):
-        graph = pg.AGraph(directed=True)
+    def dessin(self):
+        """Dessine le systeme de tâche sous la forme d'un graphe"""
+        graph = pgv.AGraph(directed=True)
         for key in self.dependance.keys():
             if not (self.dependance[key]==[]):
                 for value in self.dependance[key]:
@@ -73,27 +111,30 @@ class TaskSystem:
                 
     
     def Bernstein(self, t1, t2):
+        """Calcul les conditions de bernstein entre les tâches t1 et t2"""
         if((set(t1.reads) & set(t2.writes))==set()):
             if((set(t1.writes) & set(t2.reads))==set()):
                 if((set(t1.writes) & set(t2.writes))==set()):
                     return True
         return False
     
-    def getDepedencies(self, nomTask):
+    def getDepedencies(self, task):
+        """Renvoie les tâches desquelles dependent task"""
         dep = []
         for key, value in self.dependance.items():
-            if nomTask==key:
+            if task==key:
                 for v in value:
                     dep.append(v)
                 return dep
         
-    def speedrun(self, task):
+    def execution(self, task):
+        """Execution de la tâche task apres l'execution des tâches dont elle dépend"""
         taskWait = []
         for t in self.getDepedencies(task):
             taskWait.append(t.name)
             if not(self.effectuer.__contains__(t)):
                 self.effectuer.append(t)
-                thread = Thread(name=t.name, target=self.speedrun, args=[t])
+                thread = Thread(name=t.name, target=self.execution, args=[t])
                 thread.start()
                 self.threads.append(thread)
         
@@ -104,8 +145,8 @@ class TaskSystem:
         task.run()
         print(task.name + " à fini de s'executer")
 
-    def run(self):
-        self.test()
+    def calculLastTask(self):
+        """Renvoie la liste des tâches qui doivent s'effectuer en dernier"""
         tasks = []
         for task in self.dependance.keys():
             last = True
@@ -116,16 +157,9 @@ class TaskSystem:
                         break
             if last:
                 tasks.append(task)
-        self.effectuer += tasks
+        return tasks
 
-        taskWait = []
-        for task in tasks:
-            taskWait.append(task.name)
-            thread = Thread(name=task.name, target=self.speedrun, args=[task])
-            thread.start()
-            self.threads.append(thread)
-
-        for t in self.threads:
-            if taskWait.__contains__(t.getName()):
-                t.join()
-        
+    def run(self):
+        for task in self.calculLastTask():
+            self.effectuer += task.name
+            self.execution(task)

@@ -27,7 +27,7 @@ def runT5():
     global X, Y, W
     W = X + Y
 
-t0 = Task("T0", runT0, r=["X"])
+t0 = Task("T0", runT0, ["X"], ["X"])
 
 t1 = Task("T1", runT1, w=["X"])
 

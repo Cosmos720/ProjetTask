@@ -73,9 +73,9 @@ class TaskSystem:
 
     def calcDico(self):
         """Crée le dictionnaire des dépendances pour un systeme de tâche en ligne"""
-        for task in range(len(self.taskList)):
-            for dep in range(task,-1,-1):
-                self.ordre[self.taskList[task]] += [self.taskList[dep]]
+        for i in range(len(self.taskList)):
+            for j in range(i,-1,-1):
+                self.ordre[self.taskList[i]] += [self.taskList[j]]
 
 
     def calcDepedencies(self):
@@ -84,7 +84,7 @@ class TaskSystem:
             dep=[]
             for t2 in self.ordre[t1]:
                 if t1 != t2 and not(self.Bernstein(t1, t2)):
-                    dep += [t2]
+                    dep.append(t2)
             self.dependance[t1] = dep
         for key in self.dependance.keys():
             redond = []

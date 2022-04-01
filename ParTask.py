@@ -20,7 +20,7 @@ class Task:
     def verifError(self):
         """Vérifie les erreurs de création d'une tâche"""
         Erreur = False
-        if self.name == "":
+        if self.name == "" or not(isinstance(self.name, str())):
             print("Erreur: Création d'une tâche sans nom!!!")
             exit()
         if not(hasattr(self.run,'__call__')):
@@ -28,6 +28,9 @@ class Task:
             Erreur = True
         if self.reads == [] and self.writes == []:
             print("Une tache ne peut pas avoir son domaine de lecture ET d'écriture vide !!!")
+            Erreur = True
+        if not(isinstance(self.reads, list())) or not(isinstance(self.writes, list())):
+            print("Les domaines de lecture et d'ecriture d'une tâche necessitent une liste")
             Erreur = True
         
         if(Erreur):
@@ -56,21 +59,15 @@ class TaskSystem:
 
     def verrifError(self):
         """Vérifie les erreurs de création d'un systeme de tâche"""
-        Erreur = False
         if self.taskList == []:
             print("Erreur le systeme de tâche ne possede aucune tâche à effectuer!!!")
-            Erreur = True
+            exit()
         for i in range(len(self.taskList)):
             for j in range(i+1,len(self.taskList)):
                 if self.taskList[i].name == self.taskList[j].name:
                     print(("Erreur le nom de tâche {} apparait deux fois dans le systeme de tâche!!!").format(self.taskList[i].name))
-                    Erreur = True
-                    break
+                    exit()
                     
-        if Erreur:
-            exit()
-
-
     def calcDico(self):
         """Crée le dictionnaire des dépendances pour un systeme de tâche en ligne"""
         for i in range(len(self.taskList)):
@@ -97,7 +94,13 @@ class TaskSystem:
             for x in redond:
                 self.dependance[key].remove(x)
 
-
+    def Bernstein(self, t1, t2):
+        """Calcul les conditions de bernstein entre les tâches t1 et t2"""
+        if((set(t1.reads) & set(t2.writes))==set()):
+            if((set(t1.writes) & set(t2.reads))==set()):
+                if((set(t1.writes) & set(t2.writes))==set()):
+                    return True
+        return False
 
     def dessin(self):
         """Dessine le systeme de tâche sous la forme d'un graphe"""
@@ -110,14 +113,6 @@ class TaskSystem:
         graph.draw('Graphe.png')
         graph.close()
                 
-    
-    def Bernstein(self, t1, t2):
-        """Calcul les conditions de bernstein entre les tâches t1 et t2"""
-        if((set(t1.reads) & set(t2.writes))==set()):
-            if((set(t1.writes) & set(t2.reads))==set()):
-                if((set(t1.writes) & set(t2.writes))==set()):
-                    return True
-        return False
     
     def getDepedencies(self, task):
         """Renvoie les tâches desquelles dependent task"""
@@ -144,7 +139,7 @@ class TaskSystem:
                 t.join()
         
         task.run()
-        print(task.name + " à fini de s'executer")
+        #print(task.name + " à fini de s'executer")
 
     def calculLastTask(self):
         """Renvoie la liste des tâches qui doivent s'effectuer en dernier"""
